@@ -8,6 +8,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Get branch
+        run: echo "BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
       - name: Install builder plugin
         id: buildx
         uses: docker/setup-buildx-action@v3
@@ -19,4 +21,5 @@ jobs:
         run: |
           docker buildx build --push \
             --tag "${{secrets.DOCKER_TAG}}" \
+            --tag "${{secrets.DOCKER_TAG}}:$BRANCH" \
             --platform linux/amd64 .

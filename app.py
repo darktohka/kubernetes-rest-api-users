@@ -19,14 +19,14 @@ user_schema = {
     "required": ["username", "email"]
 }
 
-@app.route("/version")
+@app.route("/api/users/version")
 def version():
     return jsonify({
         "version": "1",
         "description": "This is the first API!"
     })
 
-@app.route('/users', methods=['GET'])
+@app.route('/api/users', methods=['GET'])
 def get_all_users():
     users = mongo.users.find()
     user_list = []
@@ -37,7 +37,7 @@ def get_all_users():
 
     return jsonify(user_list)
 
-@app.route('/users/<string:user_id>', methods=['GET'])
+@app.route('/api/users/<string:user_id>', methods=['GET'])
 def get_user(user_id):
     try:
         user_id = ObjectId(user_id)
@@ -52,7 +52,7 @@ def get_user(user_id):
 
     return jsonify({"error": "User not found"}), 404
 
-@app.route('/users', methods=['POST'])
+@app.route('/api/users', methods=['POST'])
 def create_user():
     data = request.json
 
@@ -77,7 +77,7 @@ def create_user():
     new_user["_id"] = str(result.inserted_id)
     return jsonify(new_user), 201
 
-@app.route('/users/<string:user_id>', methods=['PUT', 'PATCH'])
+@app.route('/api/users/<string:user_id>', methods=['PUT', 'PATCH'])
 def edit_user(user_id):
     try:
         user_id = ObjectId(user_id)

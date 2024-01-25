@@ -4,7 +4,7 @@ from bson.errors import InvalidId
 from jsonschema import validate, ValidationError
 from .identity import get_jwt_identity
 
-from .app import app, mongo, jwt
+from .app import app, mongo
 from .profile import populate_user
 
 user_schema = {

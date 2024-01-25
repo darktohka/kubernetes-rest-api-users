@@ -1,17 +1,16 @@
-from flask import Flask, request, jsonify
-from flask_pymongo import PyMongo
+from flask import request, jsonify, session
 from bson import ObjectId
 from bson.errors import InvalidId
 from jsonschema import validate, ValidationError
-import os
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
-app = Flask(__name__)
-app.config['MONGO_URI'] = os.environ['MONGO_CONNECTION_STRING']
-mongo = PyMongo(app).db
+from .app import app, mongo, jwt
+from .profile import populate_user
 
 user_schema = {
     "type": "object",
     "properties": {
+        "discord_id": {"type": "string", "minLength": 1},
         "username": {"type": "string", "minLength": 1},
         "email": {"type": "string", "format": "email"},
         "roles": {"type": "array", "items": {"type": "string"}}
@@ -19,20 +18,13 @@ user_schema = {
     "required": ["username", "email"]
 }
 
-@app.route("/api/users/version")
-def version():
-    return jsonify({
-        "version": "1",
-        "description": "This is the first API!"
-    })
-
 @app.route('/api/users', methods=['GET'])
 def get_all_users():
     users = mongo.users.find()
     user_list = []
 
     for user in users:
-        user["_id"] = str(user["_id"])
+        user = populate_user(user)
         user_list.append(user)
 
     return jsonify(user_list)
@@ -47,7 +39,7 @@ def get_user(user_id):
     user = mongo.users.find_one({"_id": user_id})
 
     if user:
-        user["_id"] = str(user["_id"])
+        user = populate_user(user)
         return jsonify(user)
 
     return jsonify({"error": "User not found"}), 404
@@ -78,6 +70,7 @@ def create_user():
     return jsonify(new_user), 201
 
 @app.route('/api/users/<string:user_id>', methods=['PUT', 'PATCH'])
+@jwt_required()
 def edit_user(user_id):
     try:
         user_id = ObjectId(user_id)
@@ -88,6 +81,12 @@ def edit_user(user_id):
 
     if not user:
         return jsonify({"error": "User not found"}), 404
+
+    # Ensure the user has permission
+    current_user = get_jwt_identity()
+
+    if current_user['id'] != str(user['_id']) and 'admin' not in current_user['roles']:
+        return jsonify({"error": "You cannot edit this user's profile"}), 403
 
     data = request.json
     new_user = {
@@ -110,5 +109,29 @@ def edit_user(user_id):
     user["_id"] = str(user["_id"])
     return jsonify(user)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+@app.route('/api/users/<string:user_id>', methods=['DELETE'])
+@jwt_required()
+def delete_user(user_id):
+    try:
+        user_id = ObjectId(user_id)
+    except InvalidId:
+        return jsonify({"error": "Invalid user ID"}), 400
+
+    user = mongo.users.find_one({"_id": user_id})
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Ensure the user has permission
+    current_user = get_jwt_identity()
+
+    if current_user['id'] != str(user['_id']) and 'admin' not in current_user['roles']:
+        return jsonify({"error": "You cannot edit this user's profile"}), 403
+
+    mongo.users.delete_one({"_id": user_id})
+    return jsonify({"message": "User deleted"}), 200
+
+@app.route("/api/users/logout")
+def logout():
+    session.clear()
+    return jsonify({"message": "Logged out"}), 200

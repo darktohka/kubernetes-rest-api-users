@@ -39,6 +39,7 @@ def version():
 from .user import *
 from .discord import *
 from .profile import *
+from .kafka import *
 
 if __name__ == '__main__':
     app.run(debug=True)

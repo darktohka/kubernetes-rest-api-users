@@ -4,3 +4,5 @@ flask_jwt_extended
 jsonschema
 requests
 pymongo
+msgpack
+kafka-python

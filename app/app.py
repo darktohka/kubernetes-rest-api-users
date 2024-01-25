@@ -10,6 +10,7 @@ try:
     discord_redirect_uri = os.environ['DISCORD_REDIRECT_URI']
     discord_client_id = os.environ['DISCORD_CLIENT_ID']
     discord_client_secret = os.environ['DISCORD_CLIENT_SECRET']
+    jwt_secret_key = os.environ['JWT_SECRET_KEY']
 except KeyError:
     with open('.env', 'r') as f:
         env = json.load(f)
@@ -18,14 +19,11 @@ except KeyError:
     discord_redirect_uri = env['DISCORD_REDIRECT_URI']
     discord_client_id = env['DISCORD_CLIENT_ID']
     discord_client_secret = env['DISCORD_CLIENT_SECRET']
+    jwt_secret_key = env['JWT_SECRET_KEY']
 
 app = Flask(__name__)
 app.config['MONGO_URI'] = connection_string
-
-try:
-    app.config["JWT_SECRET_KEY"] = os.environ['JWT_SECRET_KEY']
-except:
-    app.config["JWT_SECRET_KEY"] = "super-secret"
+app.config["JWT_SECRET_KEY"] = jwt_secret_key
 
 mongo = PyMongo(app).db
 jwt = JWTManager(app)

@@ -26,4 +26,4 @@ jobs:
           docker buildx build --push \
             --tag "${{secrets.DOCKER_TAG}}" \
             --tag "${{secrets.DOCKER_TAG}}:$BRANCH" \
-            --platform linux/amd64,linux/arm64 .
+            --platform linux/amd64 .

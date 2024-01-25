@@ -18,7 +18,7 @@ def create_producer(*args, **kwargs):
     kwargs.update(config)
     return KafkaProducer(*args, **kwargs)
 
-jwt_producer = create_producer('jwt-rotated', auto_offset_reset='latest')
+jwt_producer = create_producer()
 
 def register_kafka_listener(*args, **kwargs):
     listener = kwargs.pop('listener')

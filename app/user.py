@@ -2,7 +2,7 @@ from flask import request, jsonify, session
 from bson import ObjectId
 from bson.errors import InvalidId
 from jsonschema import validate, ValidationError
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from .identity import get_jwt_identity
 
 from .app import app, mongo, jwt
 from .profile import populate_user
@@ -70,7 +70,6 @@ def create_user():
     return jsonify(new_user), 201
 
 @app.route('/api/users/<string:user_id>', methods=['PUT', 'PATCH'])
-@jwt_required()
 def edit_user(user_id):
     try:
         user_id = ObjectId(user_id)
@@ -83,7 +82,10 @@ def edit_user(user_id):
         return jsonify({"error": "User not found"}), 404
 
     # Ensure the user has permission
-    current_user = get_jwt_identity()
+    try:
+        current_user = get_jwt_identity()
+    except:
+        return jsonify({'error': 'Not logged in'}), 401
 
     if current_user['id'] != str(user['_id']) and 'admin' not in current_user['roles']:
         return jsonify({"error": "You cannot edit this user's profile"}), 403
@@ -110,7 +112,6 @@ def edit_user(user_id):
     return jsonify(user)
 
 @app.route('/api/users/<string:user_id>', methods=['DELETE'])
-@jwt_required()
 def delete_user(user_id):
     try:
         user_id = ObjectId(user_id)
@@ -123,7 +124,10 @@ def delete_user(user_id):
         return jsonify({"error": "User not found"}), 404
 
     # Ensure the user has permission
-    current_user = get_jwt_identity()
+    try:
+        current_user = get_jwt_identity()
+    except:
+        return jsonify({'error': 'Not logged in'}), 401
 
     if current_user['id'] != str(user['_id']) and 'admin' not in current_user['roles']:
         return jsonify({"error": "You cannot edit this user's profile"}), 403

@@ -1,6 +1,6 @@
 Flask
 Flask-PyMongo
-flask_jwt_extended
+pyjwt
 jsonschema
 requests
 pymongo

@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from .app import mongo, app
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from .identity import get_jwt_identity
 from datetime import datetime
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -68,7 +68,6 @@ def populate_user(user):
     return user
 
 @app.route('/api/users/<string:user_id>/profile', methods=['PUT', 'PATCH'])
-@jwt_required()
 def edit_profile(user_id):
     try:
         user_id = ObjectId(user_id)
@@ -81,7 +80,10 @@ def edit_profile(user_id):
         return jsonify({"error": "User not found"}), 404
 
     # Ensure the user has permission
-    current_user = get_jwt_identity()
+    try:
+        current_user = get_jwt_identity()
+    except:
+        return jsonify({'error': 'Not logged in'}), 401
 
     if current_user['id'] != str(user['_id']) and 'admin' not in current_user['roles']:
         return jsonify({"error": "You cannot edit this user's profile"}), 403

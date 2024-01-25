@@ -44,5 +44,5 @@ def jwt_rotated(data):
     print('JWT rotated:', secret)
     set_jwt_secret(secret)
 
-register_kafka_listener('jwt-rotated', group_id='jwt-rotation-consumers', listener=jwt_rotated)
+register_kafka_listener('jwt-rotated', group_id='jwt-rotation-consumers', auto_offset_reset='earliest', listener=jwt_rotated)
 rotate_jwt()

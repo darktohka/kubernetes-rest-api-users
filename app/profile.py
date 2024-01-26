@@ -46,6 +46,7 @@ def update_profile(profile):
             return current_profile
 
         profile = current_profile
+        print('Current profile:', profile)
 
         if '_id' in profile:
             del profile['_id']
@@ -54,6 +55,7 @@ def update_profile(profile):
     result = mongo.profiles.insert_one(profile)
     profile['id'] = str(result.inserted_id)
     profile['user_id'] = str(profile['user_id'])
+    print('Returning profile:', profile)
     return profile
 
 def populate_user(user):

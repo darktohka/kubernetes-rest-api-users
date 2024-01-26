@@ -14,8 +14,6 @@ config = {
     'api_version': (1, 0, 0)
 }
 
-print('Config:', config)
-
 def create_consumer(*args, **kwargs):
     kwargs.update(config)
     kwargs['value_deserializer'] = msgpack.unpackb
@@ -51,14 +49,17 @@ def rotate_jwt():
 
 def rotate_jwt_if_necessary():
     consumer = create_consumer('jwt-rotated', auto_offset_reset='earliest')
-    print(consumer.partitions_for_topic('jwt-rotated'))
-    partition = TopicPartition('jwt-rotated', 0)
+    partition_number = next(iter(consumer.partitions_for_topic('jwt-rotated')))
+    partition = TopicPartition('jwt-rotated', partition_number)
 
     consumer.seek_to_end(partition)
     end_position = consumer.position(partition)
 
     consumer.seek_to_beginning(partition)
     start_position = consumer.position(partition)
+
+    print('Start:', start_position)
+    print('End:', end_position)
 
     if start_position == end_position:
         rotate_jwt()

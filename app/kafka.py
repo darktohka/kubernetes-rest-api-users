@@ -50,8 +50,6 @@ def rotate_jwt():
 
 def jwt_rotated(message):
     data = message.value
-    print('JWT rotated:', data)
-
     secret = data['jwt']
     set_jwt_secret(secret)
 

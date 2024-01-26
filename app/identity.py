@@ -7,6 +7,8 @@ def get_jwt_secret():
     return jwt_secret
 
 def set_jwt_secret(secret):
+    print('Set JWT secret:', secret)
+
     global jwt_secret
     jwt_secret = secret
 

@@ -42,14 +42,18 @@ def register_kafka_listener(*args, **kwargs):
 
 def rotate_jwt():
     print('Rotating JWT...')
-    jwt_producer.send('jwt-rotated', binascii.hexlify(os.urandom(16)))
-    jwt_producer.flush()
-
-def jwt_rotated(data):
-    secret = data.decode('utf-8')
-
-    print('JWT rotated:', secret)
+    secret = binascii.hexlify(os.urandom(16)).decode('utf-8')
     set_jwt_secret(secret)
 
-register_kafka_listener('jwt-rotated', group_id='jwt-rotation-consumers', auto_offset_reset='earliest', listener=jwt_rotated)
+    jwt_producer.send('jwt-rotated', {'jwt': secret})
+    jwt_producer.flush()
+
+def jwt_rotated(message):
+    data = message.value
+    print('JWT rotated:', data)
+
+    secret = data['jwt']
+    set_jwt_secret(secret)
+
+register_kafka_listener('jwt-rotated', auto_offset_reset='latest', listener=jwt_rotated)
 rotate_jwt()

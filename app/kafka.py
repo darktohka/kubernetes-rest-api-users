@@ -9,7 +9,8 @@ config = {
     'security_protocol': 'SASL_PLAINTEXT',
     'sasl_mechanism': 'SCRAM-SHA-256',
     'sasl_plain_username': kafka_username,
-    'sasl_plain_password': kafka_password
+    'sasl_plain_password': kafka_password,
+    'api_version': (1, 0, 0)
 }
 
 print('Config:', config)

@@ -19,7 +19,7 @@ def set_jwt_secret(secret):
     jwt_secret = secret
 
 def create_jwt(user):
-    identity = {'id': user['_id'], 'username': user['username'], 'email': user['email'], 'roles': user['roles']}
+    identity = {'id': user['id'], 'username': user['username'], 'email': user['email'], 'roles': user['roles']}
     access_token = jwt.encode(identity, get_jwt_secret(), algorithm='HS256')
     return access_token
 

@@ -33,8 +33,6 @@ def register_kafka_listener(*args, **kwargs):
         consumer = create_consumer(*args, **kwargs)
 
         while True:
-            consumer.poll(timeout_ms=6000)
-
             print('Polling consumer...')
 
             for msg in consumer:
@@ -42,8 +40,7 @@ def register_kafka_listener(*args, **kwargs):
                 listener(msg)
 
             print('Done.')
-
-        time.sleep(0.1)
+            time.sleep(0.1)
 
     thread = threading.Thread(target=poll)
     thread.start()
@@ -75,10 +72,15 @@ def rotate_jwt_if_necessary():
     else:
         print('JWT rotation not required.')
 
+        # Read the latest message and set the JWT secret to the value in the message.
+        consumer.seek(partition, end_position - 1)
+        message = consumer.poll()
+        jwt_rotated(message)
+
 def jwt_rotated(message):
     data = message.value
     secret = data['jwt']
     set_jwt_secret(secret)
 
 rotate_jwt_if_necessary()
-register_kafka_listener('jwt-rotated', enable_auto_commit=False, auto_offset_reset='earliest', listener=jwt_rotated)
+register_kafka_listener('jwt-rotated', enable_auto_commit=False, auto_offset_reset='latest', listener=jwt_rotated)

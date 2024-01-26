@@ -24,7 +24,11 @@ def create_producer(*args, **kwargs):
     kwargs['value_serializer'] = msgpack.dumps
     return KafkaProducer(*args, **kwargs)
 
-jwt_producer = create_producer()
+producer = create_producer()
+
+def user_deleted(user_id):
+    producer.send('user-deleted', {'id': user_id})
+    producer.flush()
 
 def register_kafka_listener(*args, **kwargs):
     listener = kwargs.pop('listener')
@@ -43,8 +47,8 @@ def rotate_jwt():
     secret = binascii.hexlify(os.urandom(16)).decode('utf-8')
     set_jwt_secret(secret)
 
-    jwt_producer.send('jwt-rotated', {'jwt': secret})
-    jwt_producer.flush()
+    producer.send('jwt-rotated', {'jwt': secret})
+    producer.flush()
 
 def rotate_jwt_if_necessary():
     consumer = create_consumer('jwt-rotated', auto_offset_reset='earliest')

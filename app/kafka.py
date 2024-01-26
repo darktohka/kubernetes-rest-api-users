@@ -1,6 +1,7 @@
 from .app import kafka_uri, kafka_username, kafka_password
 from .identity import set_jwt_secret
 from kafka import KafkaConsumer, KafkaProducer
+from kafka.structs import TopicPartition
 import binascii, threading, os
 import msgpack
 
@@ -50,12 +51,12 @@ def rotate_jwt():
 
 def rotate_jwt_if_necessary():
     consumer = create_consumer('jwt-rotated', auto_offset_reset='earliest')
-    partitions = consumer.partitions_for_topic('jwt-rotated')
-    partition = next(iter(partitions))
-    consumer.seek_to_end()
+    partition = TopicPartition('jwt-rotated', 0)
+
+    consumer.seek_to_end(partition)
     end_position = consumer.position(partition)
 
-    consumer.seek_to_beginning()
+    consumer.seek_to_beginning(partition)
     start_position = consumer.position(partition)
 
     if start_position == end_position:

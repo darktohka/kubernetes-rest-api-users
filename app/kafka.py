@@ -51,7 +51,7 @@ def rotate_jwt():
 def rotate_jwt_if_necessary():
     consumer = create_consumer('jwt-rotated', auto_offset_reset='earliest')
     partitions = consumer.partitions_for_topic('jwt-rotated')
-    partition = partitions[0]
+    partition = next(iter(partitions))
     consumer.seek_to_end()
     end_position = consumer.position(partition)
 

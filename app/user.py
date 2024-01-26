@@ -158,6 +158,7 @@ def on_populate_users(message):
     users = mongo.users.find({'_id': {'$in': userIds}})
     users = [populate_user(user) for user in users]
 
+    print('Sending populated users:', users)
     producer.send(USERS_POPULATED_TOPIC, {'users': users})
     producer.flush()
 

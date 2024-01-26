@@ -3,7 +3,7 @@ from bson import ObjectId
 from bson.errors import InvalidId
 from jsonschema import validate, ValidationError
 from .identity import get_jwt_identity
-
+from .kafka import rotate_jwt
 from .app import app, mongo
 from .profile import populate_user
 
@@ -133,6 +133,7 @@ def delete_user(user_id):
         return jsonify({"error": "You cannot edit this user's profile"}), 403
 
     mongo.users.delete_one({"_id": user_id})
+    rotate_jwt()
     return jsonify({"message": "User deleted"}), 200
 
 @app.route("/api/users/logout")

@@ -155,6 +155,7 @@ def user_deleted(user_id):
 def on_populate_users(message):
     data = message.value
     userIds = data['userIds']
+    userIds = [ObjectId(userId) for userId in userIds]
     users = mongo.users.find({'_id': {'$in': userIds}})
     users = [populate_user(user) for user in users]
 

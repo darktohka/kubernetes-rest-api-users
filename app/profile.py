@@ -48,8 +48,9 @@ def update_profile(profile):
         profile = current_profile
         print('Current profile:', profile)
 
-        if '_id' in profile:
-            del profile['_id']
+    for key in ('id', '_id'):
+        if key in profile:
+            del profile[key]
 
     profile["updated_at"] = datetime.utcnow()
     result = mongo.profiles.insert_one(profile)

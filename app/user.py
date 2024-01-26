@@ -2,10 +2,14 @@ from flask import request, jsonify, session
 from bson import ObjectId
 from bson.errors import InvalidId
 from jsonschema import validate, ValidationError
-from .identity import get_jwt_identity
-from .kafka import user_deleted, rotate_jwt
+from .identity import get_jwt_identity, rotate_jwt
+from .kafka import create_producer, register_kafka_listener
 from .app import app, mongo
 from .profile import populate_user
+
+USER_DELETED_TOPIC = 'user-deleted'
+POPULATE_USERS_TOPIC = 'populate-users'
+USERS_POPULATED_TOPIC = 'users-populated'
 
 user_schema = {
     "type": "object",
@@ -141,3 +145,26 @@ def delete_user(user_id):
 def logout():
     session.clear()
     return jsonify({"message": "Logged out"}), 200
+
+producer = create_producer()
+
+def user_deleted(user_id):
+    producer.send(USER_DELETED_TOPIC, {'id': user_id})
+    producer.flush()
+
+def on_populate_users(message):
+    data = message.value
+    userIds = data['userIds']
+    users = mongo.users.find({'_id': {'$in': userIds}})
+
+    for user in users:
+        user['_id'] = str(user['_id'])
+        profileId = user.get('profile').get('_id')
+
+        if profileId:
+            user['profile']['_id'] = str(profileId)
+
+    producer.send(USERS_POPULATED_TOPIC, {'users': users})
+    producer.flush()
+
+register_kafka_listener(POPULATE_USERS_TOPIC, enable_auto_commit=True, auto_offset_reset='latest', listener=on_populate_users)

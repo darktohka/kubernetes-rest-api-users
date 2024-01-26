@@ -1,8 +1,6 @@
 from .app import kafka_uri, kafka_username, kafka_password
-from .identity import set_jwt_secret
 from kafka import KafkaConsumer, KafkaProducer
-from kafka.structs import TopicPartition
-import binascii, threading, os
+import threading
 import msgpack
 
 config = {
@@ -24,12 +22,6 @@ def create_producer(*args, **kwargs):
     kwargs['value_serializer'] = msgpack.dumps
     return KafkaProducer(*args, **kwargs)
 
-producer = create_producer()
-
-def user_deleted(user_id):
-    producer.send('user-deleted', {'id': user_id})
-    producer.flush()
-
 def register_kafka_listener(*args, **kwargs):
     listener = kwargs.pop('listener')
 
@@ -41,40 +33,3 @@ def register_kafka_listener(*args, **kwargs):
 
     thread = threading.Thread(target=poll)
     thread.start()
-
-def rotate_jwt():
-    print('Rotating JWT...')
-    secret = binascii.hexlify(os.urandom(16)).decode('utf-8')
-    set_jwt_secret(secret)
-
-    producer.send('jwt-rotated', {'jwt': secret})
-    producer.flush()
-
-def rotate_jwt_if_necessary():
-    consumer = create_consumer('jwt-rotated', auto_offset_reset='earliest')
-    partition_number = next(iter(consumer.partitions_for_topic('jwt-rotated')))
-    partition = TopicPartition('jwt-rotated', partition_number)
-
-    consumer.seek_to_end(partition)
-    end_position = consumer.position(partition)
-
-    consumer.seek_to_beginning(partition)
-    start_position = consumer.position(partition)
-
-    if start_position == end_position:
-        rotate_jwt()
-    else:
-        print('JWT rotation not required.')
-
-        # Read the latest message and set the JWT secret to the value in the message.
-        consumer.seek(partition, end_position - 1)
-        message = consumer.poll(timeout_ms=6000)
-        jwt_rotated(message[partition][0])
-
-def jwt_rotated(message):
-    data = message.value
-    secret = data['jwt']
-    set_jwt_secret(secret)
-
-rotate_jwt_if_necessary()
-register_kafka_listener('jwt-rotated', enable_auto_commit=False, auto_offset_reset='latest', listener=jwt_rotated)

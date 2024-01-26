@@ -36,10 +36,11 @@ def version():
         "description": "This is the first API!"
     })
 
-from .user import *
 from .discord import *
 from .profile import *
 from .kafka import *
+from .identity import *
+from .user import *
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -75,6 +75,7 @@ def rotate_jwt_if_necessary():
         # Read the latest message and set the JWT secret to the value in the message.
         consumer.seek(partition, end_position - 1)
         message = consumer.poll()
+        print(message)
         jwt_rotated(message)
 
 def jwt_rotated(message):

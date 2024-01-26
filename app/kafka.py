@@ -6,6 +6,7 @@ import msgpack
 
 config = {
     'bootstrap_servers': [kafka_uri],
+    'security_protocol': 'SASL_PLAINTEXT',
     'sasl_mechanism': 'SCRAM-SHA-256',
     'sasl_plain_username': kafka_username,
     'sasl_plain_password': kafka_password

@@ -3,7 +3,7 @@ from .identity import set_jwt_secret
 from kafka import KafkaConsumer, KafkaProducer
 from kafka.structs import TopicPartition
 import binascii, threading, os
-import msgpack, time
+import msgpack
 
 config = {
     'bootstrap_servers': [kafka_uri],
@@ -32,15 +32,8 @@ def register_kafka_listener(*args, **kwargs):
     def poll():
         consumer = create_consumer(*args, **kwargs)
 
-        while True:
-            print('Polling consumer...')
-
-            for msg in consumer:
-                print('Message found:', msg)
-                listener(msg)
-
-            print('Done.')
-            time.sleep(0.1)
+        for msg in consumer:
+            listener(msg)
 
     thread = threading.Thread(target=poll)
     thread.start()
@@ -63,9 +56,6 @@ def rotate_jwt_if_necessary():
 
     consumer.seek_to_beginning(partition)
     start_position = consumer.position(partition)
-
-    print('Start:', start_position)
-    print('End:', end_position)
 
     if start_position == end_position:
         rotate_jwt()

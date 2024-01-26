@@ -56,7 +56,11 @@ def update_profile(profile):
     result = mongo.profiles.insert_one(profile)
     profile['id'] = str(result.inserted_id)
     profile['user_id'] = str(profile['user_id'])
-    print('Returning profile:', profile)
+
+    for key in ('id', '_id'):
+        if key in profile:
+            del profile[key]
+
     return profile
 
 def populate_user(user):

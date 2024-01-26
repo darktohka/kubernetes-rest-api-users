@@ -26,6 +26,7 @@ def get_profile_of_user(user_id):
         return None
 
     profile["id"] = str(profile.pop("_id"))
+    profile['user_id'] = str(profile['user_id'])
     return profile
 
 def update_profile(profile):
@@ -36,18 +37,18 @@ def update_profile(profile):
         changed = False
 
         for key, new_value in profile.items():
-            if current_profile.get(key) != new_value:
+            if 'id' not in key and current_profile.get(key) != new_value:
                 current_profile[key] = new_value
                 changed = True
 
         if not changed:
             # Profile has not changed, don't bother updating
-            current_profile['id'] = str(current_profile.pop('_id'))
-            current_profile['user_id'] = str(current_profile['user_id'])
             return current_profile
 
         profile = current_profile
-        del profile['_id']
+
+        if '_id' in profile:
+            del profile['_id']
 
     profile["updated_at"] = datetime.utcnow()
     result = mongo.profiles.insert_one(profile)

@@ -48,10 +48,25 @@ def rotate_jwt():
     jwt_producer.send('jwt-rotated', {'jwt': secret})
     jwt_producer.flush()
 
+def rotate_jwt_if_necessary():
+    consumer = create_consumer('jwt-rotated', auto_offset_reset='earliest')
+    partitions = consumer.partitions_for_topic('jwt-rotated')
+    partition = partitions[0]
+    consumer.seek_to_end()
+    end_position = consumer.position(partition)
+
+    consumer.seek_to_beginning()
+    start_position = consumer.position(partition)
+
+    if start_position == end_position:
+        rotate_jwt()
+    else:
+        print('JWT rotation not required.')
+
 def jwt_rotated(message):
     data = message.value
     secret = data['jwt']
     set_jwt_secret(secret)
 
 register_kafka_listener('jwt-rotated', auto_offset_reset='earliest', listener=jwt_rotated)
-rotate_jwt()
+rotate_jwt_if_necessary()

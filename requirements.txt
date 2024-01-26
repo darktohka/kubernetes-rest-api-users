@@ -6,3 +6,4 @@ requests
 pymongo
 msgpack
 kafka-python
+redis

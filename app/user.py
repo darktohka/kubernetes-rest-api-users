@@ -6,6 +6,9 @@ from .identity import get_jwt_identity, rotate_jwt
 from .kafka import create_producer, register_kafka_listener
 from .app import app, mongo
 from .profile import populate_user
+import msgpack
+import os
+import redis
 
 USER_DELETED_TOPIC = 'user-deleted'
 POPULATE_USERS_TOPIC = 'populate-users'
@@ -162,5 +165,11 @@ def on_populate_users(message):
     print('Sending populated users:', users)
     producer.send(USERS_POPULATED_TOPIC, {'users': users})
     producer.flush()
+
+    # Write to Redis
+    r = redis.Redis(host=os.environ['REDIS_URI'], port=6379, db=0)
+
+    for user in users:
+        r.set(str(r['id']), msgpack.dumps(user))
 
 register_kafka_listener(POPULATE_USERS_TOPIC, enable_auto_commit=True, auto_offset_reset='latest', listener=on_populate_users)

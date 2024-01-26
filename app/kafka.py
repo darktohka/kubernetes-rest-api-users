@@ -3,7 +3,7 @@ from .identity import set_jwt_secret
 from kafka import KafkaConsumer, KafkaProducer
 from kafka.structs import TopicPartition
 import binascii, threading, os
-import msgpack
+import msgpack, time
 
 config = {
     'bootstrap_servers': [kafka_uri],
@@ -31,12 +31,19 @@ def register_kafka_listener(*args, **kwargs):
 
     def poll():
         consumer = create_consumer(*args, **kwargs)
-        consumer.poll(timeout_ms=6000)
 
-        print('Polling consumer...')
+        while True:
+            consumer.poll(timeout_ms=6000)
 
-        for msg in consumer:
-            listener(msg)
+            print('Polling consumer...')
+
+            for msg in consumer:
+                print('Message found:', msg)
+                listener(msg)
+
+            print('Done.')
+
+        time.sleep(0.1)
 
     thread = threading.Thread(target=poll)
     thread.start()

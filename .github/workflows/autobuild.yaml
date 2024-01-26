@@ -10,10 +10,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Get branch
         run: echo "BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm,arm64
       - name: Login to Docker
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin "${{ secrets.DOCKER_HOST }}"
       - name: Build the image

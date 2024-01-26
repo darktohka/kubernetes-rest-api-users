@@ -2,6 +2,7 @@ from .app import kafka_uri, kafka_username, kafka_password
 from .identity import set_jwt_secret
 from kafka import KafkaConsumer, KafkaProducer
 import binascii, threading, os
+import msgpack
 
 config = {
     'bootstrap_servers': [kafka_uri],
@@ -10,12 +11,16 @@ config = {
     'sasl_plain_password': kafka_password
 }
 
+print('Config:', config)
+
 def create_consumer(*args, **kwargs):
     kwargs.update(config)
+    kwargs['value_deserializer'] = msgpack.unpackb
     return KafkaConsumer(*args, **kwargs)
 
 def create_producer(*args, **kwargs):
     kwargs.update(config)
+    kwargs['value_serializer'] = msgpack.dumps
     return KafkaProducer(*args, **kwargs)
 
 jwt_producer = create_producer()

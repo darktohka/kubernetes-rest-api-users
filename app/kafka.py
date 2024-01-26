@@ -33,6 +33,8 @@ def register_kafka_listener(*args, **kwargs):
         consumer = create_consumer(*args, **kwargs)
         consumer.poll(timeout_ms=6000)
 
+        print('Polling consumer...')
+
         for msg in consumer:
             listener(msg)
 
@@ -72,4 +74,4 @@ def jwt_rotated(message):
     set_jwt_secret(secret)
 
 rotate_jwt_if_necessary()
-register_kafka_listener('jwt-rotated', auto_offset_reset='earliest', listener=jwt_rotated)
+register_kafka_listener('jwt-rotated', enable_auto_commit=False, auto_offset_reset='earliest', listener=jwt_rotated)

@@ -70,7 +70,7 @@ def create_user():
         return jsonify({"error": "User with username already exists"}), 400
 
     result = mongo.users.insert_one(new_user)
-    new_user["_id"] = str(result.inserted_id)
+    new_user["id"] = str(result.inserted_id)
     return jsonify(new_user), 201
 
 @app.route('/api/users/<string:user_id>', methods=['PUT', 'PATCH'])
@@ -112,7 +112,7 @@ def edit_user(user_id):
 
     mongo.users.update_one({"_id": user_id}, new_values)
     user = mongo.users.find_one({"_id": user_id})
-    user["_id"] = str(user["_id"])
+    user["id"] = str(user.pop("_id"))
     return jsonify(user)
 
 @app.route('/api/users/<string:user_id>', methods=['DELETE'])
@@ -156,13 +156,7 @@ def on_populate_users(message):
     data = message.value
     userIds = data['userIds']
     users = mongo.users.find({'_id': {'$in': userIds}})
-
-    for user in users:
-        user['_id'] = str(user['_id'])
-        profileId = user.get('profile').get('_id')
-
-        if profileId:
-            user['profile']['_id'] = str(profileId)
+    users = [populate_user(user) for user in users]
 
     producer.send(USERS_POPULATED_TOPIC, {'users': users})
     producer.flush()

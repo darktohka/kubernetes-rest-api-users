@@ -25,7 +25,7 @@ def get_profile_of_user(user_id):
     if not profile:
         return None
 
-    profile["_id"] = str(profile["_id"])
+    profile["id"] = str(profile.pop("_id"))
     return profile
 
 def update_profile(profile):
@@ -42,7 +42,7 @@ def update_profile(profile):
 
         if not changed:
             # Profile has not changed, don't bother updating
-            current_profile['_id'] = str(current_profile['_id'])
+            current_profile['id'] = str(current_profile.pop('_id'))
             current_profile['user_id'] = str(current_profile['user_id'])
             return current_profile
 
@@ -51,7 +51,7 @@ def update_profile(profile):
 
     profile["updated_at"] = datetime.utcnow()
     result = mongo.profiles.insert_one(profile)
-    profile['_id'] = str(result.inserted_id)
+    profile['id'] = str(result.inserted_id)
     profile['user_id'] = str(profile['user_id'])
     return profile
 
@@ -64,7 +64,7 @@ def populate_user(user):
         if profile:
             user["profile"] = profile
 
-    user["_id"] = str(user["_id"])
+    user["id"] = str(user.pop("_id"))
     return user
 
 @app.route('/api/users/<string:user_id>/profile', methods=['PUT', 'PATCH'])

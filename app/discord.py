@@ -1,6 +1,5 @@
 from flask import request, jsonify, redirect
 from urllib.parse import urlencode
-from datetime import datetime
 import requests
 import hashlib
 

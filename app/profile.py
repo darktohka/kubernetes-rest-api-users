@@ -1,11 +1,10 @@
 from flask import request, jsonify
 from .app import mongo, app
 from .identity import get_jwt_identity
-from datetime import datetime
 from bson import ObjectId
 from bson.errors import InvalidId
 from jsonschema import validate, ValidationError
-import pymongo
+import pymongo, time
 
 profile_schema = {
     "type": "object",
@@ -52,7 +51,7 @@ def update_profile(profile):
         if key in profile:
             del profile[key]
 
-    profile["updated_at"] = datetime.utcnow()
+    profile["updated_at"] = int(time.time())
     result = mongo.profiles.insert_one(profile)
     profile['id'] = str(result.inserted_id)
     profile['user_id'] = str(profile['user_id'])
